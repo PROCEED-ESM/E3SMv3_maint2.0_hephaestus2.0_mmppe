@@ -1895,7 +1895,7 @@ with se_tstep, dt_remap_factor, dt_tracer_factor set to -1
 <clubb_C14 phys="default"> 2.5D0      </clubb_C14>
 <clubb_tk1 phys="default"> 268.15D0   </clubb_tk1>
 <dust_emis_fact phys="default"> 13.8D0     </dust_emis_fact>
-<dust_sclfctr_a1 phys="default"> 0.011D0     </dust_sclfctr_a1>
+<dust_sclfctr_a1 phys="default"> -1.958607315D0     </dust_sclfctr_a1>
 <linoz_psc_T               > 198.0D0    </linoz_psc_T>
 <lght_no_prd_factor        > 5.0D0    </lght_no_prd_factor>
 <micro_mincdnc phys="default" microphys="mg2"> 10.D6      </micro_mincdnc>
