@@ -838,6 +838,7 @@ if ($cfg->get('microphys') =~ /^mg2/) {
 add_default($nl,'microp_aero_wsub_scheme');
 add_default($nl,'microp_aero_wsubmin');
 add_default($nl, 'microp_aero_wsub_scale');
+add_default($nl, 'microp_aero_nact_scale');
 add_default($nl,'use_preexisting_ice');
 
 #BSINGH - (when .true.)calculate solar zenith angle averaged over a time step.

@@ -2704,6 +2704,12 @@ Unitless scaling factor for the liquid droplet subgrid scale vertical velocity d
 Default: 1.0
 </entry>
 
+<entry id="microp_aero_nact_scale" type="real" category="microphysics"
+       group="microp_aero_nl" valid_values="" >
+Unitless scaling factor for the liquid droplet subgrid scale activated number during aerosol activation.
+Default: 1.0
+</entry>
+
 <entry id="use_hetfrz_classnuc" type="logical" category="microphys"
        group="phys_ctl_nl" valid_values="" >
 Switch to turn on heterogeneous freezing code.
