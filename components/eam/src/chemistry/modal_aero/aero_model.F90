@@ -107,7 +107,9 @@ module aero_model
   real(r8)          :: seasalt_sclfctr_a1
   real(r8)          :: seasalt_sclfctr_a2
   real(r8)          :: seasalt_u10_scale
+  real(r8)          :: depv_a1_scale              = 1.0
   real(r8)          :: small = 1.e-36
+  
 
   integer :: ndrydep = 0
   integer,allocatable :: drydep_indices(:)
@@ -121,7 +123,7 @@ contains
   !=============================================================================
   ! reads aerosol namelist options
   !=============================================================================
-  subroutine aero_model_readnl(nlfile)
+  subroutine aero_model_readnl(nlfile, depv_param)
 
     use namelist_utils,  only: find_group_name
     use units,           only: getunit, freeunit
@@ -132,6 +134,8 @@ contains
     ! Local variables
     integer :: unitn, ierr
     character(len=*), parameter :: subname = 'aero_model_readnl'
+    ! add optional out deposition variable
+    real(r8), optional, intent(out) :: depv_param
 
     ! Namelist variables
     character(len=16) :: aer_wetdep_list(pcnst) = ' '
@@ -139,7 +143,7 @@ contains
     namelist /aerosol_nl/ aer_wetdep_list, aer_drydep_list,          &
              sol_facti_cloud_borne, seasalt_emis_scale, sscav_tuning, &
              seasalt_masspart, seasalt_sclfctr_a1, seasalt_sclfctr_a2, seasalt_u10_scale, &
-       sol_factb_interstitial, sol_factic_interstitial, aer_sol_factb
+       sol_factb_interstitial, sol_factic_interstitial, aer_sol_factb, depv_a1_scale
     !-----------------------------------------------------------------------------
 
     ! Read namelist
@@ -155,7 +159,10 @@ contains
        end if
        close(unitn)
        call freeunit(unitn)
+    end if
 
+    if (present(depv_param)) then
+       depv_param = depv_a1_scale
     end if
 
 #ifdef SPMD
@@ -172,6 +179,7 @@ contains
     call mpibcast(seasalt_sclfctr_a1, 1, mpir8,   0, mpicom)
     call mpibcast(seasalt_sclfctr_a2, 1, mpir8,   0, mpicom)
     call mpibcast(seasalt_u10_scale, 1, mpir8,   0, mpicom)
+    call mpibcast(depv_a1_scale, 1,                                    mpir8,   0, mpicom)
 #endif
 
     wetdep_list = aer_wetdep_list
@@ -1042,7 +1050,7 @@ contains
 
   !=============================================================================
   !=============================================================================
-  subroutine aero_model_drydep  ( state, pbuf, obklen, ustar, cam_in, dt, cam_out, ptend )
+  subroutine aero_model_drydep  ( state, pbuf, obklen, ustar, cam_in, dt, cam_out, ptend, depv_a1_scale )
 
     use dust_sediment_mod, only: dust_sediment_tend
     use drydep_mod,        only: d3ddflux, calcram
@@ -1063,6 +1071,7 @@ contains
     real(r8),               intent(in)    :: ustar(:)  ! sfc fric vel
     type(cam_in_t), target, intent(in)    :: cam_in    ! import state
     real(r8),               intent(in)    :: dt             ! time step
+    real(r8),               intent(in)    :: depv_a1_scale !scalar for aerosol dry dep velocities
     type(cam_out_t),        intent(inout) :: cam_out   ! export state
     type(physics_ptend),    intent(out)   :: ptend     ! indivdual parameterization tendencies
     type(physics_buffer_desc),    pointer :: pbuf(:)
@@ -1172,14 +1181,34 @@ contains
              dens_aer(1:ncol,:) = wetdens(1:ncol,:,m)
              sg_aer(1:ncol,:) = sigmag_amode(m)
 
-             jvlc = 1
-             call modal_aero_depvel_part( ncol, state%t(:,:), state%pmid(:,:), ram1, fv,  & 
+             if (m == 1) then ! isolate accumulation mode to scale deposition velocity
+                jvlc = 1
+                call modal_aero_depvel_part( ncol, state%t(:,:), state%pmid(:,:), ram1, fv,  &
                         vlc_dry(:,:,jvlc), vlc_trb(:,jvlc), vlc_grv(:,:,jvlc),  &
                         rad_aer(:,:), dens_aer(:,:), sg_aer(:,:), 0, lchnk)
-             jvlc = 2
-             call modal_aero_depvel_part( ncol, state%t(:,:), state%pmid(:,:), ram1, fv,  & 
+                !scale interstitial aerosol dry deposition fluxes
+                vlc_dry(:,:,jvlc) = vlc_dry(:,:,jvlc)*depv_a1_scale
+                vlc_trb(:,jvlc) = vlc_trb(:,jvlc)*depv_a1_scale
+                vlc_grv(:,:,jvlc) = vlc_grv(:,:,jvlc)*depv_a1_scale
+                jvlc = 2
+                call modal_aero_depvel_part( ncol, state%t(:,:), state%pmid(:,:), ram1, fv,  &
                         vlc_dry(:,:,jvlc), vlc_trb(:,jvlc), vlc_grv(:,:,jvlc),  &
                         rad_aer(:,:), dens_aer(:,:), sg_aer(:,:), 3, lchnk)
+                !scale interstitial aerosol dry deposition fluxes
+                vlc_dry(:,:,jvlc) = vlc_dry(:,:,jvlc)*depv_a1_scale
+                vlc_trb(:,jvlc) = vlc_trb(:,jvlc)*depv_a1_scale
+                vlc_grv(:,:,jvlc) = vlc_grv(:,:,jvlc)*depv_a1_scale
+             else ! non-accumulation modes
+                jvlc = 1
+                call modal_aero_depvel_part( ncol, state%t(:,:), state%pmid(:,:), ram1, fv,  & 
+                        vlc_dry(:,:,jvlc), vlc_trb(:,jvlc), vlc_grv(:,:,jvlc),  &
+                        rad_aer(:,:), dens_aer(:,:), sg_aer(:,:), 0, lchnk)
+                jvlc = 2
+                call modal_aero_depvel_part( ncol, state%t(:,:), state%pmid(:,:), ram1, fv,  & 
+                        vlc_dry(:,:,jvlc), vlc_trb(:,jvlc), vlc_grv(:,:,jvlc),  &
+                        rad_aer(:,:), dens_aer(:,:), sg_aer(:,:), 3, lchnk)
+             end if
+
           end if
 
           do lspec = 0, nspec_amode(m)+1   ! loop over number + constituents + water

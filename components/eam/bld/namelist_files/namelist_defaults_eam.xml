@@ -1090,6 +1090,9 @@
 
 <sol_factic_interstitial                >0.4D0</sol_factic_interstitial>
 
+<!-- mmppe namelist parameter scalar -->
+<depv_a1_scale phys="default">1.0D0</depv_a1_scale>
+
 <!-- sub-column switches for physics packages -->
 <use_subcol_microp>.false.</use_subcol_microp>
 <subcol_scheme    >off    </subcol_scheme>

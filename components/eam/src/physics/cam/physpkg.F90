@@ -1595,6 +1595,7 @@ subroutine tphysac (ztodt,   cam_in,  &
     use phys_control,       only: use_qqflx_fixer
     use co2_cycle,          only: co2_cycle_set_ptend, co2_transport
     use co2_diagnostics,    only: get_carbon_sfc_fluxes, get_carbon_air_fluxes
+    use aero_model,         only: aero_model_readnl
 
     implicit none
 
@@ -1652,6 +1653,8 @@ subroutine tphysac (ztodt,   cam_in,  &
     real(r8), pointer, dimension(:,:) :: cldiceini
     real(r8), pointer, dimension(:,:) :: dtcore
     real(r8), pointer, dimension(:,:) :: ast     ! relative humidity cloud fraction 
+
+    real(r8) :: depv_a1_scale ! aerosol dry deposition velocity scalar for accumulation mode
 
     logical :: do_clubb_sgs 
 
@@ -1904,7 +1907,10 @@ if (l_tracer_aero) then
 
     !  aerosol dry deposition processes
     call t_startf('aero_drydep')
-    call aero_model_drydep( state, pbuf, obklen, surfric, cam_in, ztodt, cam_out, ptend )
+    !pull namelist deposition scalar using readnl utility
+    filein = "atm_in" // trim(inst_suffix)
+    call aero_model_readnl(filein, depv_a1_scale)
+    call aero_model_drydep( state, pbuf, obklen, surfric, cam_in, ztodt, cam_out, ptend, depv_a1_scale )
     call physics_update(state, ptend, ztodt, tend)
     call t_stopf('aero_drydep')
 

@@ -5081,6 +5081,12 @@ Seasalt mass partitioning into aitken mode; ignored if seasalt_masspart=False.
 Default: set by build-namelist.
 </entry>
 
+<entry id="depv_a1_scale" type="real" category="cam_chem"
+       group="aerosol_nl" valid_values="" >
+Aerosol accumulation mode deposition velocity tuning factor for gravitational, turbulent, and dry deposition.
+Default: 1.0
+</entry>
+
 <entry id="so2_oh_gprx_scale" type="real" category="cam_chem"
        group="mo_usrrxt_nl" valid_values="" >
 SO2 + OH gas-phase reaction rate scale factor.

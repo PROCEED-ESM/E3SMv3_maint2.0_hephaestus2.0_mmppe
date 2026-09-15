@@ -4102,6 +4102,9 @@ if ($chem =~ /_mam/ or $chem =~ /_bam/ or $chem =~ /trop_/) {
     }
 }
 
+#aerosol dry deposition flux tuning factor for accumulation mode
+add_default($nl, 'depv_a1_scale');
+
 # Gravity wave drag settings
 if ($waccm_phys or $cfg->get('nlev') >= 60) {
     # Spectral gravity waves are part of WACCM physics, and also drive the
