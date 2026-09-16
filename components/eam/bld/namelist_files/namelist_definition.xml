@@ -5081,6 +5081,18 @@ Seasalt mass partitioning into aitken mode; ignored if seasalt_masspart=False.
 Default: set by build-namelist.
 </entry>
 
+<entry id="seasalt_mass_scale_a1" type="real" category="cam_chem"
+       group="aerosol_nl" valid_values="" >
+Seasalt mass scalar for the accumulation mode.
+Default: 1.0
+</entry> 
+
+<entry id="seasalt_mass_scale_a3" type="real" category="cam_chem"
+       group="aerosol_nl" valid_values="" >
+Seasalt mass scalar for the coarse mode.
+Default: 1.0
+</entry> 
+
 <entry id="depv_a1_scale" type="real" category="cam_chem"
        group="aerosol_nl" valid_values="" >
 Aerosol accumulation mode deposition velocity tuning factor for gravitational, turbulent, and dry deposition.

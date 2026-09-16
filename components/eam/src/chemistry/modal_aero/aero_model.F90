@@ -106,6 +106,8 @@ module aero_model
   logical           :: seasalt_masspart
   real(r8)          :: seasalt_sclfctr_a1
   real(r8)          :: seasalt_sclfctr_a2
+  real(r8)          :: seasalt_mass_scale_a1
+  real(r8)          :: seasalt_mass_scale_a3
   real(r8)          :: seasalt_u10_scale
   real(r8)          :: depv_a1_scale              = 1.0
   real(r8)          :: small = 1.e-36
@@ -142,7 +144,7 @@ contains
     character(len=16) :: aer_drydep_list(pcnst) = ' '
     namelist /aerosol_nl/ aer_wetdep_list, aer_drydep_list,          &
              sol_facti_cloud_borne, seasalt_emis_scale, sscav_tuning, &
-             seasalt_masspart, seasalt_sclfctr_a1, seasalt_sclfctr_a2, seasalt_u10_scale, &
+             seasalt_masspart, seasalt_sclfctr_a1, seasalt_sclfctr_a2, seasalt_mass_scale_a1, seasalt_mass_scale_a3, seasalt_u10_scale, &
        sol_factb_interstitial, sol_factic_interstitial, aer_sol_factb, depv_a1_scale
     !-----------------------------------------------------------------------------
 
@@ -178,6 +180,8 @@ contains
     call mpibcast(seasalt_masspart, 1, mpilog,   0, mpicom)
     call mpibcast(seasalt_sclfctr_a1, 1, mpir8,   0, mpicom)
     call mpibcast(seasalt_sclfctr_a2, 1, mpir8,   0, mpicom)
+    call mpibcast(seasalt_mass_scale_a1, 1, mpir8,   0, mpicom)
+    call mpibcast(seasalt_mass_scale_a3, 1, mpir8,   0, mpicom)
     call mpibcast(seasalt_u10_scale, 1, mpir8,   0, mpicom)
     call mpibcast(depv_a1_scale, 1,                                    mpir8,   0, mpicom)
 #endif
@@ -2896,7 +2900,7 @@ do_lphase2_conditional: &
        F_eff(:)=0._r8
 
        call seasalt_emis(u10, u10cubed, lchnk, cam_in%sst, cam_in%ocnfrac, ncol, cam_in%cflx, seasalt_emis_scale, seasalt_masspart, &
-                         seasalt_sclfctr_a1, seasalt_sclfctr_a2, F_eff)
+                         seasalt_sclfctr_a1, seasalt_sclfctr_a2, seasalt_mass_scale_a1, seasalt_mass_scale_a3, F_eff)
 
        ! Write out salt mass fluxes to history files
        do m=1,seasalt_nbin-nslt_om

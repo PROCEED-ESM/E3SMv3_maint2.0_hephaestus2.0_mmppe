@@ -3964,6 +3964,8 @@ add_default($nl, 'seasalt_u10_scale');
 add_default($nl, 'seasalt_masspart');
 add_default($nl, 'seasalt_sclfctr_a1');
 add_default($nl, 'seasalt_sclfctr_a2');
+add_default($nl, 'seasalt_mass_scale_a1');
+add_default($nl, 'seasalt_mass_scale_a3');
 
 #Scale factors for aerosol reaction rates
 add_default($nl, 'so2_oh_gprx_scale');

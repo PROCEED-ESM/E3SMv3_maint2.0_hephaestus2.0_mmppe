@@ -432,7 +432,7 @@ subroutine ocean_data_readnl(nlfile)
 end subroutine ocean_data_readnl
 
   !=============================================================================
-  subroutine seasalt_emis(u10, u10cubed, lchnk, srf_temp, ocnfrc, ncol, cflx, emis_scale, mpart_on, mpart_a1, mpart_a2, F_eff)
+  subroutine seasalt_emis(u10, u10cubed, lchnk, srf_temp, ocnfrc, ncol, cflx, emis_scale, mpart_on, mpart_a1, mpart_a2, mscale_a1, mscale_a3, F_eff)
 
     use sslt_sections, only: nsections, fluxes, Dg, rdry
     use mo_constants,  only: dns_aer_sst=>seasalt_density, pi
@@ -446,6 +446,8 @@ end subroutine ocean_data_readnl
     real(r8), intent(in) :: emis_scale
     real(r8), intent(in) :: mpart_a1  
     real(r8), intent(in) :: mpart_a2
+    real(r8), intent(in) :: mscale_a1
+    real(r8), intent(in) :: mscale_a3
     integer,  intent(in) :: ncol
     real(r8), intent(inout) :: cflx(:,:)
 ! Needed in Gantt et al. calculation of organic mass fraction
@@ -608,21 +610,23 @@ end subroutine ocean_data_readnl
 enddo tracer_loop
 
 #if ( defined MODAL_AERO_4MODE_MOM || defined MODAL_AERO_5MODE)
-!Adding manual mass partitioning into seasalt modes
-! Possible values:
-!       aitken: 0.01-1%; accumulation: 0.1-10%; coarse:89-99.89%
-! 1. retrieve total aerosol mass (tot_sslt_mass)
-! 2. re-partition into aitken, accumulation, and coarse modes based on namelist params
-if (mpart_on==.true.) then
-
+!combined mass scaling and mass partitioning for PPE analysis
+!adding manual mass scaling of different seasalt modes
    cflx_ait(:ncol) = 0.0_r8
    cflx_acc(:ncol) = 0.0_r8
    cflx_crs(:ncol) = 0.0_r8
    tot_sslt_mass(:ncol) = 0.0_r8
-   cflx_acc(:ncol) = cflx(:ncol,seasalt_indices(1)) !aitken
-   cflx_ait(:ncol) = cflx(:ncol,seasalt_indices(2)) !accumulation
-   cflx_crs(:ncol) = cflx(:ncol,seasalt_indices(3)) !coarse
+   cflx_acc(:ncol) = cflx(:ncol,seasalt_indices(1))*mscale_a1 !accumulation, mscale_a1=1 by default
+   cflx_ait(:ncol) = cflx(:ncol,seasalt_indices(2)) !aitken
+   cflx_crs(:ncol) = cflx(:ncol,seasalt_indices(3))*mscale_a3 !coarse, mscale_a3=1 by default
    tot_sslt_mass(:ncol) = cflx_ait(:ncol)+cflx_acc(:ncol)+cflx_crs(:ncol)
+
+!Adding manual mass partitioning into seasalt modes (off by default)
+! Possible values:
+!       aitken: 0.01-1%; accumulation: 0.1-10%; coarse:89-99.89%
+! 1. retrieve total aerosol mass (tot_sslt_mass from previous code block)
+! 2. re-partition into aitken, accumulation, and coarse modes based on namelist params
+if (mpart_on==.true.) then
 
    !mass repartition based on namelist definitions
    !overwriting original cflx modal values
@@ -632,6 +636,7 @@ if (mpart_on==.true.) then
                                     (cflx(:ncol,seasalt_indices(1))+cflx(:ncol,seasalt_indices(2)))
 
 end if
+
 #endif
 
 #if ( defined MODAL_AERO_9MODE || defined MODAL_AERO_4MODE_MOM || defined MODAL_AERO_5MODE)
