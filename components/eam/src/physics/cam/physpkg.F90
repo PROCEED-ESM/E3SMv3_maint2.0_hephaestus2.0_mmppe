@@ -13,7 +13,7 @@ module physpkg
   !-----------------------------------------------------------------------
 
 
-  use shr_kind_mod,     only: i8 => shr_kind_i8, r8 => shr_kind_r8
+  use shr_kind_mod,     only: i8 => shr_kind_i8, r8 => shr_kind_r8, cs=>shr_kind_cs
   use spmd_utils,       only: masterproc
   use physconst,        only: latvap, latice, rh2o
   use physics_types,    only: physics_state, physics_tend, physics_state_set_grid, &
@@ -1595,6 +1595,7 @@ subroutine tphysac (ztodt,   cam_in,  &
     use phys_control,       only: use_qqflx_fixer
     use co2_cycle,          only: co2_cycle_set_ptend, co2_transport
     use co2_diagnostics,    only: get_carbon_sfc_fluxes, get_carbon_air_fluxes
+    use cam_instance,       only: inst_suffix
     use aero_model,         only: aero_model_readnl
 
     implicit none
@@ -1620,6 +1621,7 @@ subroutine tphysac (ztodt,   cam_in,  &
     type(check_tracers_data):: tracerint           ! tracer mass integrals and cummulative boundary fluxes
     type(physics_ptend)     :: ptend               ! indivdual parameterization tendencies
 
+    character(len=cs) :: filein                    ! Input namelist filename
     integer  :: nstep                              ! current timestep number
     real(r8) :: zero(pcols)                        ! array of zeros
 

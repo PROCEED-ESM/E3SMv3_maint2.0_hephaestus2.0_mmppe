@@ -127,6 +127,7 @@ logical  :: liqcf_fix
 real(r8), parameter :: unset_r8   = huge(1.0_r8)
 real(r8) :: wsubmin = unset_r8 !PMA sets a much lower lower bound
 real(r8) :: wsub_scale  ! scaling factor for sub-grid vertical velocity (liquid)
+real(r8) :: nact_scale  ! scaling factor for total activated aerosol
 
 contains
 !=========================================================================================
